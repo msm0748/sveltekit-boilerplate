@@ -23,6 +23,7 @@
 
 	const handleOptionChange = (name: string) => {
 		selectedMenu = name;
+		closeDropdown();
 	};
 
 	const handleDropdownBlur: FocusEventHandler<HTMLDivElement> = ({

@@ -1,5 +1,5 @@
 <script lang="ts">
-	export let showModal: boolean;
+	export let showModal = false;
 	export let shouldCloseOnOutsideClick = true;
 
 	$: {
