@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/svelte';
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories
 const meta = {
-	title: 'Example/Modal',
+	title: 'Common/Modal',
 	component: Modal,
 	tags: ['autodocs'],
 	argTypes: {
