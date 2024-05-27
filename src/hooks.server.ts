@@ -1,49 +1,38 @@
-import { redirect, type Handle, type HandleFetch } from '@sveltejs/kit';
+import { JWT_SECRET } from '$env/static/private';
+import type { Handle, HandleFetch } from '@sveltejs/kit';
+import jwt from 'jsonwebtoken';
 
-// ID에 '(account)'를 포함하는지 확인하는 함수
-const isAccountRoute = (id: string | null) => {
-	const idPattern = /\(account\)/;
-	return idPattern.test(id || '');
-};
-
-export const handleFetch: HandleFetch = async ({ request, fetch, event }) => {
-	const accessToken = event.cookies.get('access_token');
-	const { pathname } = event.url;
-
-	// 헤더 설정
-	request.headers.set('Authorization', `Bearer ${accessToken}`);
-
-	// 새로운 요청 객체로 fetch 호출
-	const response = await fetch(request);
-
-	const isAccountPage = isAccountRoute(event.route.id);
-
-	// 토큰 만료시 로그인 페이지로 리다이렉트
-	if (response.status === 401 && !isAccountPage) {
-		throw redirect(303, '/signin');
-	}
-
-	return response;
-};
+// JWT 페이로드 타입 정의
+interface JWTPayload {
+	id: number;
+	email: string;
+	name: string;
+	role: number;
+}
 
 export const handle: Handle = async ({ event, resolve }) => {
-	const { locals, cookies, fetch } = event;
-	const accessToken = cookies.get('access_token');
-	try {
-		// const response = await fetch(`/api/user/auth`, {
-		// 	method: 'GET',
-		// 	headers: {
-		// 		Authorization: `Bearer ${accessToken}`
-		// 	}
-		// });
-		// const user = await response.json();
-		// locals.user = user;
-	} catch (error) {
-		console.error(error);
+	const accessToken = event.cookies.get('accessToken');
 
-		locals.user = null;
+	try {
+		if (!accessToken) event.locals.user = undefined;
+		const claims = jwt.verify(accessToken!, JWT_SECRET) as JWTPayload;
+		event.locals.user = {
+			id: claims.id,
+			email: claims.email,
+			name: claims.name,
+			role: claims.role
+		};
+		// if (!claims) event.locals.user = undefined;
+	} catch (error) {
+		event.locals.user = undefined;
+		// console.error(error);
 	}
 
 	const response = await resolve(event);
+	return response;
+};
+
+export const handleFetch: HandleFetch = async ({ request, fetch }) => {
+	const response = await fetch(request);
 	return response;
 };
